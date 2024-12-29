@@ -7,38 +7,23 @@ let timerOutputEl;
 
 function start_countdown(e) {
   console.log(e);
-  // const onEvent = new Channel();
-  // onEvent.onmessage = (message) => {
-  //   let content = message.data.remainingTime;
-  //   let content_str = ""
-  //   console.log(content);
-  //   if (content < 5) {
-  //     content_str = content.toFixed(1);
-  //   } else {
-  //     content_str = content.toFixed(0);
-  //   }
-  //   timerOutputEl.textContent = content_str;
-  //   timerOutputEl.classList.remove("ok-time");
-  //   timerOutputEl.classList.remove("warning-time");
-  //   timerOutputEl.classList.remove("danger-time");
-  //   if (message.data.remainingTime > 10) {
-  //     timerOutputEl.classList.add("ok-time");
-  //   } else if (message.data.remainingTime > 5) {
-  //     timerOutputEl.classList.add("warning-time");
-  //   }
-  //   else {
-  //     timerOutputEl.classList.add("danger-time");
-  //   }
-  //   console.log(`got download event ${message.event}, ${message.data.timerId}`);
-  // };
   console.log("Starting timer");
   console.log(timerInputEl.value);
-  invoke("start_timer", { durationSecs: parseFloat(timerInputEl.value) });
+  invoke("setup_timer", { durationSecs: parseFloat(timerInputEl.value) })
+  invoke("start_timer");
 }
 
 function pause(e) {
   console.log("Pausing!");
   console.log(e);
+  invoke("pause_timer");
+}
+
+function resume(e) {
+  console.log("Pausing!");
+  console.log(e);
+  invoke("resume_timer");
+  invoke("start_timer");
 }
 
 listen('timer-update', (event) => {
@@ -85,8 +70,8 @@ window.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     pause(e);
   })
-  // document.querySelector("#timer-form").addEventListener("submit", (e) => {
-  //   e.preventDefault();
-  //   start_countdown(e);
-  // });
+  document.querySelector("#resume-button").addEventListener("click", (e) => {
+    e.preventDefault();
+    resume(e);
+  })
 });
