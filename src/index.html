@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArcheRS - Archery Clock</title>
+  <script type="module" src="/main.js" defer></script>
+</head>
+
+<body>
+  <main class="container">
+    <h1>Welcome to ArcheRS - Archery Clock!</h1>
+
+    <div class="row">
+      <img src="/assets/logo.png" class="logo archers" alt="ArcheRS logo" />
+    </div>
+    <form class="row" id="timer-form">
+      <input id="timer-input" placeholder="Enter a number of seconds..." />
+      <button id="start-button" type="submit" name="action" value="start">Start</button>
+      <button id="pause-button" type="submit" name="action" value="pause">Pause</button>
+    </form>
+    <p id="timer-output"></p>
+  </main>
+</body>
+
+</html>
