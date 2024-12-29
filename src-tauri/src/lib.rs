@@ -24,19 +24,23 @@ impl Default for TimerState {
 type SharedTimerState = Arc<Mutex<TimerState>>;
 
 #[tauri::command]
+async fn setup_timer(
+    timer_state: State<'_, SharedTimerState>,
+    duration_secs: f64,
+) -> Result<(), ()> {
+    let mut state = timer_state.lock().unwrap();
+    state.remaining_time = Some(Duration::from_secs_f64(duration_secs));
+    state.is_running = true;
+    state.start_time = Some(Instant::now());
+    state.total_duration = Some(Duration::from_secs_f64(duration_secs));
+    Ok(())
+}
+
+#[tauri::command]
 async fn start_timer(
     timer_state: State<'_, SharedTimerState>,
     app_handle: AppHandle,
-    duration_secs: f64,
 ) -> Result<(), ()> {
-    {
-        let mut state = timer_state.lock().unwrap();
-        state.remaining_time = Some(Duration::from_secs_f64(duration_secs));
-        state.is_running = true;
-        state.start_time = Some(Instant::now());
-        state.total_duration = Some(Duration::from_secs_f64(duration_secs));
-    }
-
     loop {
         thread::sleep(Duration::from_millis(50));
         let mut remaining = None;
@@ -59,12 +63,8 @@ async fn start_timer(
                     }
                 }
             }
-            if state.is_running == false {
-                finished = true;
-            }
         }
         if let Some(rem) = remaining {
-            println!("Time remaining: {}", rem);
             app_handle.emit("timer-update", rem).ok();
         }
         if finished {
@@ -104,46 +104,18 @@ fn cancel_timer(timer_state: State<'_, SharedTimerState>) {
     state.total_duration = None;
 }
 
-// fn timer_thread<R: Runtime>(app_handle: AppHandle, timer_state: SharedTimerState) {
-//     thread::spawn(move || loop {
-//         thread::sleep(Duration::from_millis(50));
-//         let mut state = timer_state.lock().unwrap();
-//         if state.is_running {
-//             if let Some(start_time) = state.start_time {
-//                 if let Some(total_duration) = state.total_duration {
-//                     let elapsed = Instant::now() - start_time;
-//                     if let Some(remaining) = total_duration.checked_sub(elapsed) {
-//                         state.remaining_time = Some(remaining);
-//                         app_handle
-//                             .emit("timer-update", remaining.as_secs_f64())
-//                             .ok();
-//                     } else {
-//                         state.is_running = false;
-//                         state.remaining_time = None;
-//                         app_handle.emit("timer-finished", ()).ok();
-//                     }
-//                 }
-//             }
-//         }
-//     });
-// }
-
 pub fn run() {
     let timer_state: SharedTimerState = Arc::new(Mutex::new(TimerState::default()));
 
     tauri::Builder::default()
         .manage(timer_state.clone())
         .invoke_handler(tauri::generate_handler![
+            setup_timer,
             start_timer,
             pause_timer,
             resume_timer,
             cancel_timer
         ])
-        // .setup(|app| {
-        //     let app_handle = app.handle().clone();
-        //     timer_thread::<R: Runtime>(app_handle, timer_state.clone());
-        //     Ok(())
-        // })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
